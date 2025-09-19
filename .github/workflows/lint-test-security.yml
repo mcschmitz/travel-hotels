@@ -1,0 +1,65 @@
+name: Lint, Test & Security
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: [main, development]
+
+jobs:
+  lint-test-security:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          uv sync
+          uv sync --group dev
+
+      - name: Run ruff formatting check
+        run: uv run poe format --exit-non-zero-on-format
+
+      - name: Run ruff linting
+        run: uv run poe lint
+
+      - name: Run type checking with mypy
+        run: uv run poe check-mypy
+
+      - name: Run security checks with bandit
+        run: uv run poe check-bandit
+
+      - name: Run tests with coverage
+        run: uv run poe test
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            report.xml
+            coverage.xml
