@@ -1,0 +1,80 @@
+[project]
+dependencies = []
+description = "Add your description here"
+name = "travel-hotels"
+readme = "README.md"
+requires-python = ">=3.12"
+version = "0.0.1"
+
+[tool.poe.tasks]
+build = { help = "Building the service", cmd = "docker-compose build" }
+check-bandit = { help = "Run bandit vulnerability checks", cmd = "bandit -r src/" }
+check-mypy = { help = "Run mypy type checks", cmd = "mypy --explicit-package-bases src/ tests/" }
+format = { help = "Format the code using ruff formatter", cmd = "ruff format ." }
+lint = { help = "Run ruff linting", cmd = "ruff check ." }
+serve = { help = "Serving the service", cmd = "docker-compose up" }
+test = { help = "Run the tests", cmd = "python -m pytest --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -m 'not integration'" }
+test-all = { help = "Run all tests including integration", cmd = "python -m pytest --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -v" }
+test-integration = { help = "Run integration tests with real API calls", cmd = "python -m pytest -m integration -v --tb=short" }
+
+[dependency-groups]
+dev = [
+    "poethepoet>=0.37.0",
+    "pre-commit>=4.3.0",
+    "ruff>=0.13.0",
+    "mypy>=1.17.1",
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-asyncio>=0.21.0",
+    "types-toml>=0.10.0",
+    "bandit>=1.8.6",
+]
+
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml --cov-config=pyproject.toml --ignore=tests/integration_tests"
+asyncio_mode = "auto"
+markers = [
+    "unit: Unit tests that don't require external dependencies",
+    "integration: Integration tests with real API calls (require VIATOR_API_KEY)",
+    "slow: Slow running tests (may take >5 seconds)",
+    "rate_limit: Tests that may hit API rate limits",
+]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = ["tests/*"]
+source = ["src"]
+
+[tool.ruff.lint]
+ignore = [
+    "D100", # Undocumented public module: We don't need to document every module. Function and class documentation is enough.
+    "D104", # Undocumented public package: We don't need to document every package. Function and class documentation is enough.
+    "D203", # One blank lines allowed before class docstring: We want no blank line before the class definition.
+    "D212", # Multi-line summary first line: We want the first line of the docstring to be one single line
+    "D400", # First line should end with a period: There's a rule that enforces that the first line ends with punctuation. This is enough.
+    "B008", # Function call in default argument: This is bad practice as you wouldn't want the function to be called every time the default argument is used.
+]
+select = ["D", "E", "W", "F", "I", "C", "B"]
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+plugins = ["pydantic.mypy"]
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+check_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_defs = false
+module = "tests.*"
+
+[tool.ruff]
+line-length = 120
+
+[tool.bandit]
+exclude_dirs = [".venv"]
+
+[tool.bandit.assert_used]
+skips = ['*/test_*.py']
