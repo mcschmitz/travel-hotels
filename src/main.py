@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from src.api.activities import router as hotels_router
+from src.api.hotels import router as hotels_router
 from src.core.config import ServerSettings
 
 server_settings = ServerSettings()
