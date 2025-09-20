@@ -31,4 +31,4 @@ COPY --from=builder /app/pyproject.toml /app/pyproject.toml
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Run the application using the virtual environment's python
-CMD ["python", "-m", "uvicorn", "src.main:create_app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "src.main:create_app", "--host", "0.0.0.0", "--port", "8000", "--factory"]
