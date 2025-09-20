@@ -67,17 +67,3 @@ class SearchAPISettings(BaseSettings):
     max_retries: int = Field(default=3, ge=0, le=10, description="Maximum number of retries for failed requests")
 
     model_config = SettingsConfigDict(env_prefix="SEARCHAPI_", extra="ignore")
-
-
-class Settings(BaseSettings):
-    """
-    Main application settings.
-
-    Aggregates all configuration settings for the application including
-    server configuration and external service configurations.
-    """
-
-    server: ServerSettings = Field(default_factory=ServerSettings)
-    searchapi: SearchAPISettings = Field(default_factory=SearchAPISettings)
-
-    model_config = SettingsConfigDict(extra="ignore")
