@@ -53,7 +53,7 @@ class SearchAPIClient:
             settings: SearchAPI configuration including API key, base URL, and timeouts
 
         """
-        self._settings = settings
+        self._settings = settings or SearchAPISettings()
         self._client: httpx.AsyncClient | None = None
 
     async def __aenter__(self) -> "SearchAPIClient":

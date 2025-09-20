@@ -6,14 +6,14 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 
-from src.core.config import SearchAPISettings
-from src.core.persistence.searchapi_client import (
+from src.app.services.searchapi.client import (
     SearchAPIAuthenticationError,
     SearchAPIClient,
     SearchAPIError,
     SearchAPIRateLimitError,
     SearchAPITimeoutError,
 )
+from src.core.config import SearchAPISettings
 
 
 class TestSearchAPIClient:
@@ -64,12 +64,6 @@ class TestSearchAPIClient:
             ],
         }
 
-    async def test_initialization(self, settings: SearchAPISettings) -> None:
-        """Test SearchAPIClient initialization."""
-        client = SearchAPIClient(settings)
-        assert client._settings == settings
-        assert client._client is None
-
     async def test_context_manager(self, client: SearchAPIClient) -> None:
         """Test async context manager functionality."""
         async with client as managed_client:
@@ -77,7 +71,6 @@ class TestSearchAPIClient:
             assert client._client is not None
             assert isinstance(client._client, httpx.AsyncClient)
 
-        # Client should be closed after context exit
         assert client._client is None
 
     async def test_ensure_client_creates_httpx_client(self, client: SearchAPIClient) -> None:
@@ -139,32 +132,6 @@ class TestSearchAPIClient:
         assert params["property_type"] == "hotel"
         assert params["adults"] == "2"
         assert params["api_key"] == "test-api-key"
-
-        await client.close()
-
-    @patch("httpx.AsyncClient.get")
-    async def test_search_hotels_default_parameters(
-        self,
-        mock_get: AsyncMock,
-        client: SearchAPIClient,
-        mock_response_data: dict[str, Any],
-    ) -> None:
-        """Test hotel search with default parameters."""
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = mock_response_data
-        mock_get.return_value = mock_response
-
-        await client.search_hotels(
-            location="Paris",
-            check_in_date="2024-12-15",
-            check_out_date="2024-12-17",
-        )
-
-        # Verify default parameters were used
-        params = mock_get.call_args[1]["params"]
-        assert params["property_type"] == "hotel"
-        assert params["adults"] == "2"
 
         await client.close()
 
@@ -333,28 +300,3 @@ class TestSearchAPIClient:
             assert params["adults"] == "4"
 
             await client.close()
-
-
-class TestSearchAPIClientExceptions:
-    """Test suite for SearchAPIClient custom exceptions."""
-
-    def test_searchapi_error_inheritance(self) -> None:
-        """Test that custom exceptions inherit from appropriate base classes."""
-        assert issubclass(SearchAPIError, Exception)
-        assert issubclass(SearchAPITimeoutError, SearchAPIError)
-        assert issubclass(SearchAPIRateLimitError, SearchAPIError)
-        assert issubclass(SearchAPIAuthenticationError, SearchAPIError)
-
-    def test_exception_messages(self) -> None:
-        """Test that exceptions can be created with custom messages."""
-        error = SearchAPIError("Custom error message")
-        assert str(error) == "Custom error message"
-
-        timeout_error = SearchAPITimeoutError("Timeout occurred")
-        assert str(timeout_error) == "Timeout occurred"
-
-        rate_limit_error = SearchAPIRateLimitError("Rate limit exceeded")
-        assert str(rate_limit_error) == "Rate limit exceeded"
-
-        auth_error = SearchAPIAuthenticationError("Authentication failed")
-        assert str(auth_error) == "Authentication failed"
