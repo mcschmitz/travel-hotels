@@ -1,11 +1,36 @@
-from typing import Any
+from contextlib import asynccontextmanager
+from typing import Any, AsyncGenerator
 
 from fastapi import FastAPI
+from loguru import logger
 
 from src.api.hotels import router as hotels_router
+from src.app.services.factory import ServiceFactory
 from src.core.config import ServerSettings
 
 server_settings = ServerSettings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """
+    Application lifespan context manager.
+
+    Handles startup and shutdown events for proper resource management.
+    """
+    # Startup
+    logger.info("Starting up application")
+
+    try:
+        yield
+    finally:
+        # Shutdown
+        logger.info("Shutting down application")
+        try:
+            await ServiceFactory.cleanup()
+            logger.info("Factory cleanup completed successfully")
+        except Exception as e:
+            logger.error(f"Error during factory cleanup: {e}")
 
 
 def create_app() -> FastAPI:
@@ -14,6 +39,7 @@ def create_app() -> FastAPI:
         title=server_settings.app_name,
         version=server_settings.version,
         debug=server_settings.debug,
+        lifespan=lifespan,
     )
     app.include_router(hotels_router)
     add_health_check(app)
