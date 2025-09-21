@@ -95,32 +95,24 @@ class HotelResult(BaseModel):
     description: str | None = Field(None, description="Hotel description")
     link: str | None = Field(None, description="Link to hotel booking page")
 
-    # Location information
     address: str | None = Field(None, description="Hotel address")
     gps_coordinates: dict[str, float] | None = Field(
         None, description="GPS coordinates with 'latitude' and 'longitude' keys"
     )
 
-    # Pricing information
     price: HotelPrice | None = Field(None, description="Price information")
 
-    # Hotel details
     property_type: str | None = Field(None, description="Property type")
     hotel_class: int | None = Field(None, ge=1, le=5, description="Hotel star rating (1-5)")
 
-    # Ratings and reviews
     rating: HotelRating | None = Field(None, description="Rating information")
 
-    # Amenities
     amenities: list[HotelAmenity] | None = Field(default_factory=list, description="List of hotel amenities")
 
-    # Images
     images: list[str] | None = Field(default_factory=list, description="List of hotel image URLs")
 
-    # Availability
     is_available: bool | None = Field(None, description="Whether the hotel is available")
 
-    # Additional metadata from SearchAPI.io
     source_id: str | None = Field(None, description="Source identifier from SearchAPI.io")
     thumbnail: str | None = Field(None, description="Thumbnail image URL")
 
@@ -136,9 +128,7 @@ class HotelSearchResponse(BaseModel):
     search_metadata: dict[str, Any] | None = Field(None, description="Search metadata from SearchAPI.io")
     search_parameters: dict[str, Any] | None = Field(None, description="Search parameters used in the request")
     search_information: dict[str, Any] | None = Field(None, description="Search information and statistics")
-    properties: list[dict[str, Any]] = Field(
-        default_factory=list, description="List of hotel results from SearchAPI.io"
-    )
+    properties: list[HotelResult] = Field(default_factory=list, description="List of hotel results")
 
     # Pagination and filtering information
     filters: dict[str, Any] | None = Field(None, description="Available filters for refining search")

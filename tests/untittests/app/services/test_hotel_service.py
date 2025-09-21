@@ -85,7 +85,7 @@ class TestHotelService:
         assert result.search_parameters == mock_searchapi_response["search_parameters"]
         assert len(result.properties) == 1
         # Properties are passed through as raw dict data from SearchAPI
-        assert result.properties[0]["name"] == "Test Hotel"
+        assert result.properties[0].name == "Test Hotel"
 
     async def test_search_hotels_searchapi_error(
         self, hotel_service: HotelService, mock_searchapi_client: AsyncMock, sample_request: HotelSearchRequest

@@ -1,13 +1,11 @@
 """Hotel service for coordinating business logic and external API calls."""
 
-import logging
 from typing import Any
+
+from loguru import logger
 
 from src.app.schemas.hotel_search import HotelSearchRequest, HotelSearchResponse
 from src.app.services.searchapi.client import SearchAPIClient, SearchAPIError
-from src.core.config import SearchAPISettings
-
-logger = logging.getLogger(__name__)
 
 
 class HotelService:
@@ -50,19 +48,9 @@ class HotelService:
             ValueError: When request parameters are invalid
 
         """
-        logger.info(
-            "Starting hotel search",
-            extra={
-                "location": request.q,
-                "check_in": request.check_in.isoformat(),
-                "check_out": request.check_out.isoformat(),
-                "property_type": request.property_type.value,
-                "adults": request.adults,
-            },
-        )
+        logger.info("Starting hotel search", extra={"location": request.q})
 
         try:
-            # Transform Pydantic model to SearchAPI client format
             searchapi_response = await self._searchapi_client.search_hotels(
                 location=request.q,
                 check_in_date=request.check_in.isoformat(),
@@ -71,38 +59,24 @@ class HotelService:
                 adults=request.adults,
             )
 
-            # Transform SearchAPI.io response to our standardized format
             response = self._transform_searchapi_response(searchapi_response)
-
             logger.info(
                 "Hotel search completed successfully",
-                extra={
-                    "location": request.q,
-                    "results_count": len(response.properties),
-                },
+                extra={"location": request.q, "results_count": len(response.properties)},
             )
-
             return response
 
         except SearchAPIError as e:
             logger.error(
                 "SearchAPI.io request failed",
-                extra={
-                    "location": request.q,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                },
+                extra={"location": request.q, "error": str(e), "error_type": type(e).__name__},
             )
             raise
 
         except Exception as e:
             logger.error(
                 "Unexpected error during hotel search",
-                extra={
-                    "location": request.q,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                },
+                extra={"location": request.q, "error": str(e), "error_type": type(e).__name__},
             )
             raise
 
@@ -117,14 +91,7 @@ class HotelService:
             HotelSearchResponse: Standardized response format
 
         """
-        # For now, we pass through the raw response structure
-        # This allows us to maintain compatibility with SearchAPI.io format
-        # while providing type safety through our Pydantic models
-
-        # Extract properties/hotels list safely
         properties = raw_response.get("properties", [])
-
-        # Create response with validation
         return HotelSearchResponse(
             search_metadata=raw_response.get("search_metadata"),
             search_parameters=raw_response.get("search_parameters"),
@@ -135,18 +102,3 @@ class HotelService:
             brands=raw_response.get("brands", []),
             location_info=raw_response.get("location_info"),
         )
-
-
-def create_hotel_service(settings: SearchAPISettings) -> HotelService:
-    """
-    Create a HotelService instance.
-
-    Args:
-        settings: SearchAPI.io configuration settings
-
-    Returns:
-        HotelService: Configured service instance
-
-    """
-    searchapi_client = SearchAPIClient(settings)
-    return HotelService(searchapi_client)
