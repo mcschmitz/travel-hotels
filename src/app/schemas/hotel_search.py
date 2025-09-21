@@ -136,7 +136,9 @@ class HotelSearchResponse(BaseModel):
     search_metadata: dict[str, Any] | None = Field(None, description="Search metadata from SearchAPI.io")
     search_parameters: dict[str, Any] | None = Field(None, description="Search parameters used in the request")
     search_information: dict[str, Any] | None = Field(None, description="Search information and statistics")
-    properties: list[HotelResult] = Field(default_factory=list, description="List of hotel results")
+    properties: list[dict[str, Any]] = Field(
+        default_factory=list, description="List of hotel results from SearchAPI.io"
+    )
 
     # Pagination and filtering information
     filters: dict[str, Any] | None = Field(None, description="Available filters for refining search")
