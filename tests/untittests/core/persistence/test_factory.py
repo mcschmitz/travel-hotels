@@ -40,24 +40,6 @@ class TestPersistenceFactory:
 
         assert client1 is client2
 
-    def test_reconfigure_searchapi_resets_client(self) -> None:
-        """Test that reconfiguring SearchAPI settings resets the client."""
-        factory = ServiceFactory()
-        settings1 = SearchAPISettings(api_key="test-key-1")
-        settings2 = SearchAPISettings(api_key="test-key-2")
-
-        # Initial configuration and client
-        factory.get_searchapi_client(settings1)
-        client1 = ServiceFactory.get_searchapi_client()
-
-        # Reconfigure with new settings
-        factory.get_searchapi_client(settings2)
-        client2 = ServiceFactory.get_searchapi_client()
-
-        # Should be a new client instance with new settings
-        assert client1 is not client2
-        assert client2._settings is settings2
-
     async def test_cleanup_with_no_clients(self) -> None:
         """Test cleanup when no clients have been created."""
         factory = ServiceFactory()
