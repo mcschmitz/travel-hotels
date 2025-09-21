@@ -1,6 +1,5 @@
 """Pydantic models for hotel search requests and responses."""
 
-import re
 from datetime import date
 from enum import Enum
 from typing import Any
@@ -30,59 +29,23 @@ class HotelSearchRequest(BaseModel):
         description="Location search query (e.g., 'New York', 'Paris, France')",
         examples=["New York", "Paris, France", "Tokyo, Japan"],
     )
-    check_in: str = Field(
-        ...,
-        description="Check-in date in YYYY-MM-DD format",
-        examples=["2024-12-01"],
-    )
-    check_out: str = Field(
-        ...,
-        description="Check-out date in YYYY-MM-DD format",
-        examples=["2024-12-05"],
-    )
-    property_type: PropertyType = Field(
-        default=PropertyType.HOTEL,
-        description="Type of property to search for",
-    )
-    adults: int = Field(
-        default=2,
-        ge=1,
-        le=10,
-        description="Number of adults (1-10)",
-    )
-
-    @field_validator("check_in", "check_out")
-    @classmethod
-    def validate_date_format(cls, v: str) -> str:
-        """Validate date format using regex pattern for YYYY-MM-DD."""
-        date_pattern = r"^\d{4}-\d{2}-\d{2}$"
-        if not re.match(date_pattern, v):
-            raise ValueError("Date must be in YYYY-MM-DD format")
-
-        # Additional validation to ensure it's a valid date
-        try:
-            year, month, day = map(int, v.split("-"))
-            date(year, month, day)
-        except ValueError as e:
-            raise ValueError(f"Invalid date: {e}") from e
-
-        return v
+    check_in: date = Field(..., description="Check-in date in YYYY-MM-DD format", examples=["2024-12-01"])
+    check_out: date = Field(..., description="Check-out date in YYYY-MM-DD format", examples=["2024-12-05"])
+    property_type: PropertyType = Field(default=PropertyType.HOTEL, description="Type of property to search for")
+    adults: int = Field(default=2, ge=1, le=10, description="Number of adults (1-10)")
 
     @model_validator(mode="after")
-    def validate_date_order(self) -> "HotelSearchRequest":
-        """Validate that check-out date is after check-in date."""
-        try:
-            check_in_date = date.fromisoformat(self.check_in)
-            check_out_date = date.fromisoformat(self.check_out)
+    def validate_dates(self) -> "HotelSearchRequest":
+        """Validate date constraints: check-in >= today and check-out > check-in."""
+        today = date.today()
 
-            if check_out_date <= check_in_date:
-                raise ValueError("Check-out date must be after check-in date")
+        # Validate check-in is not in the past
+        if self.check_in < today:
+            raise ValueError("Check-in date cannot be in the past")
 
-        except ValueError as e:
-            if "Check-out date must be after check-in date" in str(e):
-                raise e
-            # Re-raise any date parsing errors with context
-            raise ValueError(f"Invalid date format: {e}") from e
+        # Validate check-out is after check-in
+        if self.check_out <= self.check_in:
+            raise ValueError("Check-out date must be after check-in date")
 
         return self
 
