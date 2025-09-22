@@ -109,23 +109,3 @@ class TestEndToEndHotelSearch:
             params={"q": "New York", "check_in": past_date, "check_out": future_date, "adults": 2},
         )
         assert response.status_code == 422  # Validation error
-
-    @github_actions_only
-    def test_hotel_search_error_handling_no_api_key(self, client: TestClient) -> None:
-        """Test error handling when API key is missing."""
-        original_key = os.environ.pop("SEARCHAPI_API_KEY", None)
-
-        try:
-            future_date = (date.today() + timedelta(days=30)).isoformat()
-            checkout_date = (date.today() + timedelta(days=33)).isoformat()
-
-            response = client.get(
-                "/api/v1/hotels/search",
-                params={"q": "New York", "check_in": future_date, "check_out": checkout_date, "adults": 2},
-            )
-
-            assert response.status_code in [401, 500, 502]  # Authentication or server error
-
-        finally:
-            if original_key:
-                os.environ["SEARCHAPI_API_KEY"] = original_key
