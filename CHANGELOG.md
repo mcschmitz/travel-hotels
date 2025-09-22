@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.1.0 - 2025-09-22
+
+### ✨ Features
+
+- **Hotel Search API**:
+  - GET `/api/v1/hotels/search` endpoint with comprehensive query parameter validation
+  - Support for location search, date ranges, adult counts, and property types
+  - Real-time hotel availability and pricing data
+  - Global coverage powered by Google Hotels API
+
+### 🏗️ Architecture
+
+- **Factory Pattern**:
+  - `ServiceFactory` for external service management
+  - `ControllerFactory` for HTTP request handling
+  - Singleton pattern implementation with proper cleanup
+- **Async Architecture**: Full async/await implementation throughout the stack
+  - HTTPX-based HTTP client with connection pooling
+  - FastAPI async endpoints and middleware
+  - Proper resource lifecycle management
+
+### 🧪 Testing
+
+- **Comprehensive Test Suite**:
+  - Unit tests for all service components with proper mocking
+  - Integration tests for API endpoints with FastAPI TestClient
+  - End-to-end tests with real SearchAPI.io API calls
+  - Performance benchmarking and validation tests
+
 ## 0.0.1 - 2025-09-19
 
 ### ✨ Features
