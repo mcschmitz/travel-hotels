@@ -52,7 +52,10 @@ class TestHotelService:
                     "description": "A test hotel in New York",
                     "address": "123 Test St, New York, NY",
                     "price": {"rate": 150.0, "total": 300.0, "currency": "USD"},
-                    "rating": {"rating": 4.5, "reviews_count": 1250},
+                    "rating": 4.5,
+                    "amenities": ["Free WiFi", "Pool", "Gym"],
+                    "images": ["https://example.com/image1.jpg", "https://example.com/image2.jpg"],
+                    "hotel_class": "4-star hotel",
                 }
             ],
             "search_information": {"properties_results_state": "Results are ready"},
