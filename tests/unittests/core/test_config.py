@@ -1,5 +1,7 @@
 """Tests for configuration management."""
 
+import os
+
 import pytest
 from pydantic import ValidationError
 
@@ -20,6 +22,7 @@ class TestSearchAPISettings:
 
     def test_api_key_required(self) -> None:
         """Test that API key is required."""
+        os.environ.pop("SEARCHAPI_API_KEY", None)
         with pytest.raises(ValidationError):
             SearchAPISettings()
 
