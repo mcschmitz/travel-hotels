@@ -46,7 +46,7 @@ jobs:
         run: uv run poe test
 
       - name: Run integration tests
-        run: uv run poe test
+        run: uv run poe test-integration
         env:
           SEARCHAPI_API_KEY: ${{ vars.SEARCHAPI_API_KEY }}
 
