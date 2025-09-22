@@ -44,6 +44,9 @@ jobs:
 
       - name: Run tests with coverage
         run: uv run poe test
+
+      - name: Run integration tests
+        run: uv run poe test
         env:
           SEARCHAPI_API_KEY: ${{ vars.SEARCHAPI_API_KEY }}
 
