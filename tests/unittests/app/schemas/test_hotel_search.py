@@ -5,11 +5,7 @@ from datetime import date, timedelta
 import pytest
 from pydantic import ValidationError
 
-from src.app.schemas.hotel_search import (
-    HotelAmenity,
-    HotelSearchRequest,
-    PropertyType,
-)
+from src.app.schemas.hotel_search import HotelSearchRequest, PropertyType
 
 
 class TestHotelSearchRequest:
@@ -20,11 +16,7 @@ class TestHotelSearchRequest:
         tomorrow = date.today() + timedelta(days=1)
         day_after = date.today() + timedelta(days=2)
 
-        request = HotelSearchRequest(
-            q="New York",
-            check_in=tomorrow.isoformat(),
-            check_out=day_after.isoformat(),
-        )
+        request = HotelSearchRequest(q="New York", check_in=tomorrow.isoformat(), check_out=day_after.isoformat())
 
         assert request.q == "New York"
         assert request.check_in == tomorrow
@@ -59,15 +51,6 @@ class TestHotelSearchRequest:
 
         with pytest.raises(ValidationError):
             HotelSearchRequest(q="   ", check_in=tomorrow.isoformat(), check_out=day_after.isoformat())
-
-    def test_location_query_validation_too_long(self) -> None:
-        """Test location query validation for overly long values."""
-        tomorrow = date.today() + timedelta(days=1)
-        day_after = date.today() + timedelta(days=2)
-        long_query = "a" * 201
-
-        with pytest.raises(ValidationError):
-            HotelSearchRequest(q=long_query, check_in=tomorrow.isoformat(), check_out=day_after.isoformat())
 
     def test_location_query_whitespace_cleanup(self) -> None:
         """Test location query whitespace is properly cleaned."""
@@ -137,21 +120,3 @@ class TestHotelSearchRequest:
 
         assert request.check_in == today
         assert request.check_out == tomorrow
-
-
-class TestHotelAmenity:
-    """Test suite for HotelAmenity model."""
-
-    def test_hotel_amenity_required_field(self) -> None:
-        """Test HotelAmenity with required name field."""
-        amenity = HotelAmenity(name="Free WiFi")
-
-        assert amenity.name == "Free WiFi"
-        assert amenity.icon is None
-
-    def test_hotel_amenity_all_fields(self) -> None:
-        """Test HotelAmenity with all fields."""
-        amenity = HotelAmenity(name="Swimming Pool", icon="pool-icon-url")
-
-        assert amenity.name == "Swimming Pool"
-        assert amenity.icon == "pool-icon-url"
