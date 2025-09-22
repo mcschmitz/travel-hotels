@@ -137,19 +137,3 @@ class HotelSearchResponse(BaseModel):
     # Location and brand information
     brands: list[dict[str, Any]] | None = Field(default_factory=list, description="Available hotel brands")
     location_info: dict[str, Any] | None = Field(None, description="Location information for the search")
-
-
-class SearchAPIErrorResponse(BaseModel):
-    """
-    Error response model for SearchAPI.io errors.
-
-    Standardized error format for handling various SearchAPI.io
-    error conditions including authentication, rate limiting, and validation errors.
-    """
-
-    error: str = Field(..., description="Error type identifier")
-    message: str = Field(..., description="Human-readable error message")
-    status_code: int | None = Field(None, description="HTTP status code")
-    details: dict[str, Any] | None = Field(None, description="Additional error details")
-    timestamp: str | None = Field(None, description="Error timestamp")
-    request_id: str | None = Field(None, description="Request identifier for tracking")
