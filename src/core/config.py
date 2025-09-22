@@ -61,9 +61,9 @@ class SearchAPISettings(BaseSettings):
     API key, base URL, timeout settings, and other client configuration.
     """
 
+    model_config = SettingsConfigDict(env_prefix="SEARCHAPI_")
+
     api_key: SecretStr = Field(..., description="SearchAPI.io API key")
     base_url: str = Field(default="https://www.searchapi.io/api/v1", description="SearchAPI.io base URL")
     timeout: int = Field(default=30, ge=1, le=300, description="Request timeout in seconds")
     max_retries: int = Field(default=3, ge=0, le=10, description="Maximum number of retries for failed requests")
-
-    model_config = SettingsConfigDict(env_prefix="SEARCHAPI_", extra="ignore")
