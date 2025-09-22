@@ -48,7 +48,7 @@ jobs:
       - name: Run integration tests
         run: uv run poe test-integration
         env:
-          SEARCHAPI_API_KEY: ${{ vars.SEARCHAPI_API_KEY }}
+          SEARCHAPI_API_KEY: ${{ secrets.SEARCHAPI_API_KEY }}
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
