@@ -11,21 +11,6 @@ from src.app.schemas.hotel_search import HotelSearchRequest, HotelSearchResponse
 router = APIRouter(prefix="/api/v1/hotels", tags=["hotels"])
 
 
-@router.get("/health")
-async def hotels_health() -> dict[str, str]:
-    """
-    Hotel service health check endpoint.
-
-    Returns:
-        dict[str, str]: Health status of the hotels service
-
-    Example:
-        {"status": "hotels service healthy"}
-
-    """
-    return {"status": "hotels service healthy"}
-
-
 @router.get("/search", response_model=HotelSearchResponse)
 async def search_hotels(
     q: Annotated[
@@ -37,44 +22,22 @@ async def search_hotels(
             examples=["New York", "Paris, France", "Tokyo, Japan"],
         ),
     ],
-    check_in: Annotated[
-        date,
-        Query(
-            description="Check-in date in YYYY-MM-DD format",
-            examples=["2024-12-01"],
-        ),
-    ],
-    check_out: Annotated[
-        date,
-        Query(
-            description="Check-out date in YYYY-MM-DD format",
-            examples=["2024-12-05"],
-        ),
-    ],
+    check_in: Annotated[date, Query(description="Check-in date in YYYY-MM-DD format", examples=["2024-12-01"])],
+    check_out: Annotated[date, Query(description="Check-out date in YYYY-MM-DD format", examples=["2024-12-05"])],
     property_type: Annotated[
         PropertyType,
         Query(
-            description="Type of property to search for",
-            examples=[PropertyType.HOTEL, PropertyType.VACATION_RENTAL],
+            description="Type of property to search for", examples=[PropertyType.HOTEL, PropertyType.VACATION_RENTAL]
         ),
     ] = PropertyType.HOTEL,
-    adults: Annotated[
-        int,
-        Query(
-            ge=1,
-            le=10,
-            description="Number of adults (1-10)",
-            examples=[2, 4],
-        ),
-    ] = 2,
+    adults: Annotated[int, Query(ge=1, le=10, description="Number of adults (1-10)", examples=[2, 4])] = 2,
     controller: HotelController = Depends(get_hotel_controller),
 ) -> HotelSearchResponse:
     """
     Search for hotels based on location, dates, and preferences.
 
-    This endpoint provides comprehensive hotel search functionality using
-    the SearchAPI.io Google Hotels API. It validates search parameters,
-    handles various error conditions, and returns structured hotel data.
+    This endpoint provides comprehensive hotel search functionality using the SearchAPI.io Google Hotels API. It
+    validates search parameters, handles various error conditions, and returns structured hotel data.
 
     Args:
         q: Location search query (required)
@@ -122,7 +85,6 @@ async def search_hotels(
         }
 
     """
-    # Create request model from query parameters
     request = HotelSearchRequest(
         q=q,
         check_in=check_in,
@@ -130,6 +92,4 @@ async def search_hotels(
         property_type=property_type,
         adults=adults,
     )
-
-    # Delegate to controller for business logic and error handling
     return await controller.search_hotels(request)
