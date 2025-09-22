@@ -20,9 +20,7 @@ check-mypy = { help = "Run mypy type checks", cmd = "mypy --explicit-package-bas
 format = { help = "Format the code using ruff formatter", cmd = "ruff format ." }
 lint = { help = "Run ruff linting", cmd = "ruff check ." }
 serve = { help = "Serving the service", cmd = "docker-compose up" }
-test = { help = "Run the tests", cmd = "python -m pytest --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -m 'not integration'" }
-test-all = { help = "Run all tests including integration", cmd = "python -m pytest --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -v" }
-test-integration = { help = "Run integration tests with real API calls", cmd = "python -m pytest -m integration -v --tb=short" }
+test = { help = "Run all tests including integration", cmd = "python -m pytest tests --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -v" }
 
 [dependency-groups]
 dev = [
