@@ -1,10 +1,17 @@
 [project]
-dependencies = []
+dependencies = [
+    "fastapi>=0.116.2",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "pydantic-settings>=2.10.1",
+    "toml>=0.10.2",
+    "uvicorn>=0.36.0",
+]
 description = "Add your description here"
 name = "travel-hotels"
 readme = "README.md"
 requires-python = ">=3.12"
-version = "0.0.1"
+version = "0.1.0"
 
 [tool.poe.tasks]
 build = { help = "Building the service", cmd = "docker-compose build" }
@@ -13,9 +20,8 @@ check-mypy = { help = "Run mypy type checks", cmd = "mypy --explicit-package-bas
 format = { help = "Format the code using ruff formatter", cmd = "ruff format ." }
 lint = { help = "Run ruff linting", cmd = "ruff check ." }
 serve = { help = "Serving the service", cmd = "docker-compose up" }
-test = { help = "Run the tests", cmd = "python -m pytest --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -m 'not integration'" }
-test-all = { help = "Run all tests including integration", cmd = "python -m pytest --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -v" }
-test-integration = { help = "Run integration tests with real API calls", cmd = "python -m pytest -m integration -v --tb=short" }
+test = { help = "Run all tests including integration", cmd = "python -m pytest tests tests/unittests --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -v" }
+test-integration = { help = "Run all tests including integration", cmd = "python -m pytest tests tests/integration --cov=src --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml -v" }
 
 [dependency-groups]
 dev = [

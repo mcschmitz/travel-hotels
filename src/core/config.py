@@ -3,8 +3,8 @@
 import ipaddress
 from enum import Enum
 
-from pydantic import AnyUrl, Field, IPvAnyAddress, PositiveInt, field_validator
-from pydantic_settings import BaseSettings
+from pydantic import AnyUrl, Field, IPvAnyAddress, PositiveInt, SecretStr, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.core import __package_name__, __version__
 
@@ -32,11 +32,7 @@ class ServerSettings(BaseSettings):
     host: IPvAnyAddress | AnyUrl | str = "0.0.0.0"  # nosec B104
     port: PositiveInt = Field(default=8000, le=65535)
 
-    class Config:
-        """Pydantic configuration for settings management."""
-
-        env_prefix = "SERVER_"
-        extra = "ignore"
+    model_config = SettingsConfigDict(env_prefix="SERVER_", extra="ignore")
 
     @field_validator("host", mode="before")
     @classmethod
@@ -55,3 +51,19 @@ class ServerSettings(BaseSettings):
         except Exception:  # nosec: B110
             pass
         raise ValueError(f"Invalid host: {v}")
+
+
+class SearchAPISettings(BaseSettings):
+    """
+    SearchAPI.io configuration settings.
+
+    Manages configuration for SearchAPI.io hotel search service including
+    API key, base URL, timeout settings, and other client configuration.
+    """
+
+    model_config = SettingsConfigDict(env_prefix="SEARCHAPI_")
+
+    api_key: SecretStr = Field(..., description="SearchAPI.io API key")
+    base_url: str = Field(default="https://www.searchapi.io/api/v1", description="SearchAPI.io base URL")
+    timeout: int = Field(default=30, ge=1, le=300, description="Request timeout in seconds")
+    max_retries: int = Field(default=3, ge=0, le=10, description="Maximum number of retries for failed requests")
