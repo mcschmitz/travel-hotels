@@ -18,13 +18,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     Handles startup and shutdown events for proper resource management.
     """
-    # Startup
     logger.info("Starting up application")
 
     try:
         yield
     finally:
-        # Shutdown
         logger.info("Shutting down application")
         try:
             await ServiceFactory.cleanup()
