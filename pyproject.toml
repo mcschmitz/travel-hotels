@@ -11,7 +11,7 @@ description = "Add your description here"
 name = "travel-hotels"
 readme = "README.md"
 requires-python = ">=3.12"
-version = "0.0.1"
+version = "0.1.0"
 
 [tool.poe.tasks]
 build = { help = "Building the service", cmd = "docker-compose build" }
