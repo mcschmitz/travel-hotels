@@ -1,6 +1,5 @@
 """End-to-end integration tests for hotel search functionality with real SearchAPI.io."""
 
-import os
 from datetime import date, timedelta
 
 import pytest
@@ -18,15 +17,6 @@ def client() -> TestClient:
 
 
 @pytest.fixture
-def api_key() -> str:
-    """Get SearchAPI.io API key from environment."""
-    key = os.getenv("SEARCHAPI_API_KEY")
-    if not key:
-        pytest.skip("SEARCHAPI_API_KEY environment variable not set")
-    return key
-
-
-@pytest.fixture
 def future_dates() -> dict[str, str]:
     """Generate future check-in and check-out dates for testing."""
     check_in = date.today() + timedelta(days=30)
@@ -38,11 +28,8 @@ class TestEndToEndHotelSearch:
     """End-to-end integration tests for hotel search functionality."""
 
     @github_actions_only
-    def test_hotel_search_new_york_success(self, client: TestClient, api_key: str, future_dates: dict) -> None:
+    def test_hotel_search_new_york_success(self, client: TestClient, future_dates: dict) -> None:
         """Test successful hotel search for New York with real SearchAPI.io."""
-        # Ensure API key is configured
-        os.environ["SEARCHAPI_API_KEY"] = api_key
-
         response = client.get(
             "/api/v1/hotels/search",
             params={
@@ -80,11 +67,8 @@ class TestEndToEndHotelSearch:
             assert "name" in prop
             assert "price" in prop or "rate_per_night" in prop
 
-    def test_hotel_search_parameter_validation(self, client: TestClient, api_key: str) -> None:
-        """Test parameter validation with real API."""
-        # Ensure API key is configured
-        os.environ["SEARCHAPI_API_KEY"] = api_key
-
+    def test_hotel_search_parameter_validation(self, client: TestClient) -> None:
+        """Test parameter validation - no API key needed for validation errors."""
         # Test missing required parameters
         response = client.get("/api/v1/hotels/search")
         assert response.status_code == 422  # Validation error
@@ -96,10 +80,8 @@ class TestEndToEndHotelSearch:
         )
         assert response.status_code == 422  # Validation error
 
-    def test_hotel_search_past_date_validation(self, client: TestClient, api_key: str) -> None:
-        """Test validation of past check-in dates."""
-        os.environ["SEARCHAPI_API_KEY"] = api_key
-
+    def test_hotel_search_past_date_validation(self, client: TestClient) -> None:
+        """Test validation of past check-in dates - no API key needed for validation errors."""
         # Test past check-in date
         past_date = (date.today() - timedelta(days=1)).isoformat()
         future_date = (date.today() + timedelta(days=5)).isoformat()
