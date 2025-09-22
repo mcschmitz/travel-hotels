@@ -87,7 +87,7 @@ class SearchAPIClient:
 
         if not self._client:
             raise SearchAPIError("HTTP client not initialized")
-        logger.info(f"Secret: {self._settings.api_key.get_secret_value()}")
+        logger.info(f"Secret now: {self._settings.api_key.get_secret_value()}")
         params = {
             "engine": "google_hotels",
             "q": location,
