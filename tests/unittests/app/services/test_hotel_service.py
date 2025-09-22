@@ -7,7 +7,8 @@ import pytest
 
 from src.app.schemas.hotel_search import HotelSearchRequest, PropertyType
 from src.app.services.hotel_service import HotelService
-from src.app.services.searchapi.client import SearchAPIClient, SearchAPIError
+from src.app.services.searchapi.client import SearchAPIClient
+from src.app.services.searchapi.exceptions import SearchAPIError
 
 
 class TestHotelService:
@@ -65,13 +66,10 @@ class TestHotelService:
         mock_searchapi_response: dict,
     ) -> None:
         """Test successful hotel search operation."""
-        # Setup mock
         mock_searchapi_client.search_hotels.return_value = mock_searchapi_response
 
-        # Execute
         result = await hotel_service.search_hotels(sample_request)
 
-        # Verify SearchAPI client was called correctly
         mock_searchapi_client.search_hotels.assert_called_once_with(
             location="New York",
             check_in_date=sample_request.check_in.isoformat(),
@@ -80,21 +78,17 @@ class TestHotelService:
             adults=2,
         )
 
-        # Verify response structure
         assert result.search_metadata == mock_searchapi_response["search_metadata"]
         assert result.search_parameters == mock_searchapi_response["search_parameters"]
         assert len(result.properties) == 1
-        # Properties are passed through as raw dict data from SearchAPI
         assert result.properties[0].name == "Test Hotel"
 
     async def test_search_hotels_searchapi_error(
         self, hotel_service: HotelService, mock_searchapi_client: AsyncMock, sample_request: HotelSearchRequest
     ) -> None:
         """Test handling of SearchAPI errors."""
-        # Setup mock to raise SearchAPIError
         mock_searchapi_client.search_hotels.side_effect = SearchAPIError("API Error")
 
-        # Execute and verify exception is propagated
         with pytest.raises(SearchAPIError, match="API Error"):
             await hotel_service.search_hotels(sample_request)
 
@@ -102,10 +96,8 @@ class TestHotelService:
         self, hotel_service: HotelService, mock_searchapi_client: AsyncMock, sample_request: HotelSearchRequest
     ) -> None:
         """Test handling of unexpected errors."""
-        # Setup mock to raise unexpected error
         mock_searchapi_client.search_hotels.side_effect = RuntimeError("Unexpected error")
 
-        # Execute and verify exception is propagated
         with pytest.raises(RuntimeError, match="Unexpected error"):
             await hotel_service.search_hotels(sample_request)
 
@@ -156,7 +148,6 @@ class TestHotelService:
 
         await hotel_service.search_hotels(request)
 
-        # Verify correct parameters were passed
         mock_searchapi_client.search_hotels.assert_called_once_with(
             location="Paris, France",
             check_in_date=request.check_in.isoformat(),
