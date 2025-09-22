@@ -1,8 +1,7 @@
 """Test decorators for conditional test execution."""
 
 import os
-from functools import wraps
-from typing import Any, Callable
+from typing import Callable
 
 import pytest
 
@@ -21,18 +20,8 @@ def github_actions_only(func: Callable) -> Callable:
         The wrapped test function with conditional execution logic
 
     """
+    is_github_actions = (
+        os.getenv("GITHUB_ACTIONS") == "true" or os.getenv("CI") == "true" and os.getenv("GITHUB_WORKFLOW") is not None
+    )
 
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        is_github_actions = (
-            os.getenv("GITHUB_ACTIONS") == "true"
-            or os.getenv("CI") == "true"
-            and os.getenv("GITHUB_WORKFLOW") is not None
-        )
-
-        if not is_github_actions:
-            pytest.skip("Test only runs in GitHub Actions environment")
-
-        return func(*args, **kwargs)
-
-    return wrapper
+    return pytest.mark.skipif(not is_github_actions, "Test only runs in GitHub Actions environment")(func)
