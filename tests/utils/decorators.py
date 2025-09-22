@@ -24,4 +24,4 @@ def github_actions_only(func: Callable) -> Callable:
         os.getenv("GITHUB_ACTIONS") == "true" or os.getenv("CI") == "true" and os.getenv("GITHUB_WORKFLOW") is not None
     )
 
-    return pytest.mark.skipif(not is_github_actions, "Test only runs in GitHub Actions environment")(func)
+    return pytest.mark.skipif(not is_github_actions, reason="Test only runs in GitHub Actions environment")(func)
