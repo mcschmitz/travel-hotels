@@ -1,5 +1,6 @@
 """Pydantic models for hotel search requests and responses."""
 
+import re
 from datetime import date
 from enum import Enum
 from typing import Any
@@ -105,16 +106,32 @@ class HotelResult(BaseModel):
     property_type: str | None = Field(None, description="Property type")
     hotel_class: int | None = Field(None, ge=1, le=5, description="Hotel star rating (1-5)")
 
-    rating: HotelRating | None = Field(None, description="Rating information")
+    rating: float | None = Field(None, ge=0, le=5, description="Hotel rating (0-5)")
 
-    amenities: list[HotelAmenity] | None = Field(default_factory=list, description="List of hotel amenities")
+    amenities: list[str] | None = Field(default_factory=list, description="List of hotel amenities")
 
-    images: list[str] | None = Field(default_factory=list, description="List of hotel image URLs")
+    images: list[str | dict[str, Any]] | None = Field(
+        default_factory=list, description="List of hotel image URLs or image objects"
+    )
 
     is_available: bool | None = Field(None, description="Whether the hotel is available")
 
     source_id: str | None = Field(None, description="Source identifier from SearchAPI.io")
     thumbnail: str | None = Field(None, description="Thumbnail image URL")
+
+    @field_validator("hotel_class", mode="before")
+    @classmethod
+    def parse_hotel_class(cls, v: Any) -> int | None:
+        """Parse hotel class from string format like '3-star hotel' to integer."""
+        if v is None:
+            return None
+        if isinstance(v, int):
+            return v
+        if isinstance(v, str):
+            match = re.search(r"(\d+)", v)
+            if match:
+                return int(match.group(1))
+        return None
 
 
 class HotelSearchResponse(BaseModel):
