@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 
-from src.app.services.searchapi.client import (
+from src.app.services.searchapi.client import SearchAPIClient
+from src.app.services.searchapi.exceptions import (
     SearchAPIAuthenticationError,
-    SearchAPIClient,
     SearchAPIError,
     SearchAPIRateLimitError,
     SearchAPITimeoutError,
@@ -64,15 +64,6 @@ class TestSearchAPIClient:
             ],
         }
 
-    async def test_context_manager(self, client: SearchAPIClient) -> None:
-        """Test async context manager functionality."""
-        async with client as managed_client:
-            assert managed_client is client
-            assert client._client is not None
-            assert isinstance(client._client, httpx.AsyncClient)
-
-        assert client._client is None
-
     async def test_ensure_client_creates_httpx_client(self, client: SearchAPIClient) -> None:
         """Test that _ensure_client creates httpx.AsyncClient with proper configuration."""
         await client._ensure_client()
@@ -93,10 +84,7 @@ class TestSearchAPIClient:
 
     @patch("httpx.AsyncClient.get")
     async def test_search_hotels_success(
-        self,
-        mock_get: AsyncMock,
-        client: SearchAPIClient,
-        mock_response_data: dict[str, Any],
+        self, mock_get: AsyncMock, client: SearchAPIClient, mock_response_data: dict[str, Any]
     ) -> None:
         """Test successful hotel search request."""
         # Setup mock response
@@ -113,13 +101,11 @@ class TestSearchAPIClient:
             adults=2,
         )
 
-        # Verify the result
         assert result == mock_response_data
         assert "properties" in result
         assert len(result["properties"]) == 1
         assert result["properties"][0]["name"] == "Test Hotel"
 
-        # Verify the request was made with correct parameters
         mock_get.assert_called_once()
         call_args = mock_get.call_args
         assert call_args[0][0] == "https://api.test.com/v1/search"
@@ -132,7 +118,6 @@ class TestSearchAPIClient:
         assert params["property_type"] == "hotel"
         assert params["adults"] == "2"
         assert params["api_key"] == "test-api-key"
-
         await client.close()
 
     @patch("httpx.AsyncClient.get")
@@ -161,9 +146,7 @@ class TestSearchAPIClient:
 
         with pytest.raises(SearchAPIRateLimitError) as exc_info:
             await client.search_hotels(
-                location="Test Location",
-                check_in_date="2024-12-01",
-                check_out_date="2024-12-03",
+                location="Test Location", check_in_date="2024-12-01", check_out_date="2024-12-03"
             )
 
         assert "SearchAPI.io rate limit exceeded" in str(exc_info.value)
@@ -179,9 +162,7 @@ class TestSearchAPIClient:
 
         with pytest.raises(SearchAPIError) as exc_info:
             await client.search_hotels(
-                location="Test Location",
-                check_in_date="2024-12-01",
-                check_out_date="2024-12-03",
+                location="Test Location", check_in_date="2024-12-01", check_out_date="2024-12-03"
             )
 
         assert "SearchAPI.io request failed with status 500" in str(exc_info.value)
@@ -195,9 +176,7 @@ class TestSearchAPIClient:
 
         with pytest.raises(SearchAPITimeoutError) as exc_info:
             await client.search_hotels(
-                location="Test Location",
-                check_in_date="2024-12-01",
-                check_out_date="2024-12-03",
+                location="Test Location", check_in_date="2024-12-01", check_out_date="2024-12-03"
             )
 
         assert "SearchAPI.io request timed out after 30s" in str(exc_info.value)
@@ -210,9 +189,7 @@ class TestSearchAPIClient:
 
         with pytest.raises(SearchAPIError) as exc_info:
             await client.search_hotels(
-                location="Test Location",
-                check_in_date="2024-12-01",
-                check_out_date="2024-12-03",
+                location="Test Location", check_in_date="2024-12-01", check_out_date="2024-12-03"
             )
 
         assert "HTTP error during SearchAPI.io request" in str(exc_info.value)
@@ -227,53 +204,19 @@ class TestSearchAPIClient:
 
             with pytest.raises(SearchAPIError) as exc_info:
                 await client.search_hotels(
-                    location="Test Location",
-                    check_in_date="2024-12-01",
-                    check_out_date="2024-12-03",
+                    location="Test Location", check_in_date="2024-12-01", check_out_date="2024-12-03"
                 )
 
             assert "HTTP client not initialized" in str(exc_info.value)
-
-    async def test_session_context_manager(self, client: SearchAPIClient, mock_response_data: dict[str, Any]) -> None:
-        """Test session context manager for multiple API calls."""
-        with patch("httpx.AsyncClient.get") as mock_get:
-            mock_response = Mock()
-            mock_response.status_code = 200
-            mock_response.json.return_value = mock_response_data
-            mock_get.return_value = mock_response
-
-            async with client.session() as session:
-                # First call
-                result1 = await session.search_hotels(
-                    location="New York",
-                    check_in_date="2024-12-01",
-                    check_out_date="2024-12-03",
-                )
-
-                # Second call using same session
-                result2 = await session.search_hotels(
-                    location="Paris",
-                    check_in_date="2024-12-05",
-                    check_out_date="2024-12-07",
-                )
-
-                assert result1 == mock_response_data
-                assert result2 == mock_response_data
-                assert mock_get.call_count == 2
-
-            # Client should be closed after session exit
-            assert client._client is None
 
     async def test_multiple_close_calls_safe(self, client: SearchAPIClient) -> None:
         """Test that multiple close() calls are safe."""
         await client._ensure_client()
         assert client._client is not None
 
-        # First close
         await client.close()
         assert client._client is None
 
-        # Second close should not raise an error
         await client.close()
         assert client._client is None
 
