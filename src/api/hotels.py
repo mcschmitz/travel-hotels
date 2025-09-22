@@ -5,7 +5,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from src.app.controllers.hotel_controller import HotelController, get_hotel_controller
+from src.api.dependencies.controllers import get_hotel_controller
+from src.app.controllers.hotel_controller import HotelController
 from src.app.schemas.hotel_search import HotelSearchRequest, HotelSearchResponse, PropertyType
 
 router = APIRouter(prefix="/api/v1/hotels", tags=["hotels"])

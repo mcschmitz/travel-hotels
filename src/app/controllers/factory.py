@@ -29,7 +29,6 @@ class ControllerFactory:
 
         """
         if cls._hotel_controller is None:
-            # Ensure service layer is initialized with consistent settings
             ServiceFactory.get_hotel_service(settings)
             cls._hotel_controller = HotelController()
 
