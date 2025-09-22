@@ -3,7 +3,7 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.api.dependencies.controllers import get_hotel_controller
 from src.app.controllers.hotel_controller import HotelController
@@ -86,11 +86,14 @@ async def search_hotels(
         }
 
     """
-    request = HotelSearchRequest(
-        q=q,
-        check_in=check_in,
-        check_out=check_out,
-        property_type=property_type,
-        adults=adults,
-    )
+    try:
+        request = HotelSearchRequest(
+            q=q,
+            check_in=check_in,
+            check_out=check_out,
+            property_type=property_type,
+            adults=adults,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
     return await controller.search_hotels(request)
