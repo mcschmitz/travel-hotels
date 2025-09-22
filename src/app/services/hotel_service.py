@@ -5,7 +5,8 @@ from typing import Any
 from loguru import logger
 
 from src.app.schemas.hotel_search import HotelSearchRequest, HotelSearchResponse
-from src.app.services.searchapi.client import SearchAPIClient, SearchAPIError
+from src.app.services.searchapi.client import SearchAPIClient
+from src.app.services.searchapi.exceptions import SearchAPIError
 
 
 class HotelService:

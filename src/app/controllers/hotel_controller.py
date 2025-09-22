@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from src.app.schemas.hotel_search import HotelSearchRequest, HotelSearchResponse
 from src.app.services.factory import ServiceFactory
 from src.app.services.hotel_service import HotelService
-from src.app.services.searchapi.client import (
+from src.app.services.searchapi.exceptions import (
     SearchAPIAuthenticationError,
     SearchAPIError,
     SearchAPIRateLimitError,

@@ -1,36 +1,17 @@
 """SearchAPI.io HTTP client for hotel search functionality."""
 
-from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import Any
 
 import httpx
 from pydantic import ValidationError
 
+from src.app.services.searchapi.exceptions import (
+    SearchAPIAuthenticationError,
+    SearchAPIError,
+    SearchAPIRateLimitError,
+    SearchAPITimeoutError,
+)
 from src.core.config import SearchAPISettings
-
-
-class SearchAPIError(Exception):
-    """Base exception for SearchAPI.io related errors."""
-
-    pass
-
-
-class SearchAPITimeoutError(SearchAPIError):
-    """Raised when SearchAPI.io request times out."""
-
-    pass
-
-
-class SearchAPIRateLimitError(SearchAPIError):
-    """Raised when SearchAPI.io rate limit is exceeded."""
-
-    pass
-
-
-class SearchAPIAuthenticationError(SearchAPIError):
-    """Raised when SearchAPI.io authentication fails."""
-
-    pass
 
 
 class SearchAPIClient:
@@ -55,15 +36,6 @@ class SearchAPIClient:
         """
         self._settings = settings or SearchAPISettings()
         self._client: httpx.AsyncClient | None = None
-
-    async def __aenter__(self) -> "SearchAPIClient":
-        """Async context manager entry."""
-        await self._ensure_client()
-        return self
-
-    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Async context manager exit with proper cleanup."""
-        await self.close()
 
     async def _ensure_client(self) -> None:
         """Ensure HTTP client is initialized."""
@@ -115,7 +87,6 @@ class SearchAPIClient:
         if not self._client:
             raise SearchAPIError("HTTP client not initialized")
 
-        # Build request parameters for SearchAPI.io Google Hotels API
         params = {
             "engine": "google_hotels",
             "q": location,
@@ -126,13 +97,11 @@ class SearchAPIClient:
             "api_key": self._settings.api_key.get_secret_value(),
         }
 
-        # Construct full URL
         url = f"{self._settings.base_url}/search"
 
         try:
             response = await self._client.get(url, params=params)
 
-            # Handle specific HTTP status codes
             if response.status_code == 401:
                 raise SearchAPIAuthenticationError("Invalid SearchAPI.io API key")
             elif response.status_code == 429:
@@ -141,7 +110,6 @@ class SearchAPIClient:
                 error_detail = response.text[:200] if response.text else "Unknown error"
                 raise SearchAPIError(f"SearchAPI.io request failed with status {response.status_code}: {error_detail}")
 
-            # Raise for HTTP errors not caught above
             response.raise_for_status()
 
             return response.json()
@@ -152,26 +120,3 @@ class SearchAPIClient:
             raise SearchAPIError(f"HTTP error during SearchAPI.io request: {e}") from e
         except ValidationError as e:
             raise ValidationError(f"Invalid request parameters: {e}") from e
-
-    @asynccontextmanager
-    async def session(self) -> AsyncGenerator["SearchAPIClient", None]:
-        """
-        Create a managed session for multiple API calls.
-
-        This context manager ensures proper setup and cleanup of the HTTP client
-        for scenarios where multiple API calls are needed.
-
-        Usage:
-            async with client.session() as session:
-                result1 = await session.search_hotels(...)
-                result2 = await session.search_hotels(...)
-
-        Yields:
-            SearchAPIClient: The same client instance with initialized HTTP client
-
-        """
-        await self._ensure_client()
-        try:
-            yield self
-        finally:
-            await self.close()
